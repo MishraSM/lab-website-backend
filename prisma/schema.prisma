@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Category for NewsItem
+enum Category{
+  Recognition
+  ResearchActivity
+  Media
+  Grant
+}
+
+// Category for Opportunity
+enum OpportunityCat{
+  Research
+  PostDoc
+  Grad 
+  Undergrad
+}
+
+// Category for Team member
+enum TeamSection {
+  ResearchTeam
+  GradPostDoc
+  Trainee
+  Alumni
+}
+
+// category for Publication
+enum PublicationType {
+  PeerReviewed
+  Preprint
+  Poster
+  Brief
+}
+
+// Model for tags associated with LaySummary
+model LaySummary {
+  id          Int       @id @default(autoincrement())
+  title       String    @unique
+  description String
+  paperUrl    String
+  contentImage String
+  imageCaption String
+  date        DateTime
+  createdAt   DateTime  @default(now())
+
+  sections    Section[]
+  tags        Tags[]    @relation("LaySummaryTags")
+}
+
+model Section {
+  id            Int         @id @default(autoincrement())
+  question      String
+  answer        String
+  order         Int
+  laySummaryId  Int
+  laySummary    LaySummary  @relation(fields: [laySummaryId], references: [id])
+}
+
+model Tags {
+  id           Int           @id @default(autoincrement())
+  tag          String        @unique
+  laySummaries LaySummary[]  @relation("LaySummaryTags")
+}
+
+/// The `NewsItem` model represents a news item or announcement.
+/// 
+/// Fields:
+/// - `id`: Unique identifier for the news item (auto-incremented).
+/// - `title`: Unique title of the news item.
+/// - `description`: Brief description of the news item.
+/// - `figureLink`: URL link to a related figure or image.
+/// - `figCaption`: Caption for the associated figure.
+/// - `body`: Main content of the news item.
+/// - `category`: Category of the news item (enum: Award, ResearchTeam, Media, Grant).
+/// - `createdAt`: Timestamp of when the news item was created.
+model NewsItem {
+  id           Int       @id @default(autoincrement())
+  title        String    @unique
+  subtitle     String
+  description  String
+  content      String
+  image        String
+  imageCaption String
+  date         DateTime
+  category     Category
+  createdAt    DateTime  @default(now())
+}
+
+/// The `TeamMember` model represents a member of the research team.
+///
+/// Fields:
+/// - `id`: Unique identifier for the team member (auto-incremented).
+/// - `name`: Name of the team member.
+/// - `title`: Title or position of the team member.
+/// - `section`: Section/category of the team member (enum: ResearchTeam, GradPostDoc, Trainee, Alumni).
+/// - `status`: current Status.
+/// - `image`: URL or path to the team member's image.
+/// - `body`: Main content or biography of the team member.
+/// - `createdAt`: Timestamp of when the team member was added.
+/// - `published`: Publications led by the team member (many-to-many relation with `Publication`, only for poster, briefs).
+/// - `links`: List of associated links (one-to-many relation with `Link`).
+model TeamMember{
+  id          Int             @id @default(autoincrement())
+  name        String
+  title       String
+  section     TeamSection
+  status      String?
+  image       String
+  body        String
+  createdAt   DateTime        @default(now())
+  published   Publication[]   @relation("teamMemberLed")
+  links       Link[]          @relation("TeamMemberLinks")
+
+  @@unique([name, title])
+}
+
+/// The `Link` model represents a link associated with a team member.
+/// 
+/// Fields:
+/// - `id`: Unique identifier for the link (auto-incremented).
+/// - `url`: URL of the link.
+/// - `teamMemberId`: Foreign key referencing the associated team member.
+/// - `teamMember`: The related `TeamMember` entity (many-to-one relation).
+model Link{
+  id            Int          @id @default(autoincrement())
+  url           String
+  type          String
+  teamMemberId  Int
+  teamMember    TeamMember   @relation("TeamMemberLinks", fields: [teamMemberId], references: [id])
+}
+
+/// The `Opportunity` model represents an available research or academic opportunity.
+/// 
+/// Fields:
+/// - `id`: Unique identifier for the opportunity (auto-incremented).
+/// - `title`: Title of the opportunity.
+/// - `description`: Brief description of the opportunity.
+/// - `descriptionpdf`: PDF link or path for detailed description.
+/// - `applyLink`: URL link to apply for the opportunity.
+/// - `jobType`: Category of the opportunity (enum: Research, PostDoc, Grad, Undergrad).
+/// - `createdAt`: Timestamp of when the opportunity was created.
+model Opportunity{
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String
+  descriptionpdf  String
+  applyLink       String
+  jobType         OpportunityCat
+  createdAt       DateTime @default(now())
+
+  @@unique([title, jobType])
+}
+
+/// The `Publication` model represents a publication or scholarly work.
+///
+/// Fields:
+/// - `id`: Unique identifier for the publication (auto-incremented).
+/// - `title`: Title of the publication.
+/// - `authors`: Authors of the publication.
+/// - `year`: Year of publication.
+/// - `category`: Type of publication (enum: PeerReviewed, Preprint, Poster, Brief).
+/// - `journal`: Journal and volume/issue for peer-reviewed publications (optional).
+/// - `preprintserver`: Preprint server name for preprints (optional).
+/// - `link`: URL link to the publication, preprint, or image for posters/briefs (optional).
+/// - `presentedAt`: Information about where the work was presented (for posters, optional).
+/// - `teamLed`: Team members who led the publication (many-to-many relation with `TeamMember`)(for posters - can be optional).
+/// - `date`: Date of presentation or publication (for posters, briefs, optional).
+/// - `createdAt`: Timestamp of when the publication was added.
+/// 
+/// Unique constraint: Combination of `title`, `authors`, `year`, and `category` must be unique.
+model Publication{
+  id              Int           @id @default(autoincrement())
+  title           String
+  authors         String
+  year            Int
+  category        PublicationType
+  pubmedId        String?       @unique // for publications from pubmed
+  journal         String? // journal + volumne issue for peer publication
+  preprintserver  String? // for preprint server published
+  link            String? // link for preprint or published paper, or image for poster or presentation for briefs + report
+  presentedAt     String? // for posters info
+  teamLed         TeamMember[]  @relation("teamMemberLed")  // for poster, brief + reports
+  date            DateTime?  // for poster, brief + reports
+  createdAt       DateTime      @default(now())
+
+  @@unique([title, authors, year, category])
+}
