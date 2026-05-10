@@ -21,7 +21,7 @@ export default async function handler(
     if (req.method === "GET") {
         // Handle GET request to fetch publications filtered by type and search query
         try {
-            const { type, q, page = 1, limit = 10 } = req.query;
+            const {q, type, page = 1, limit = 10 } = req.query;
 
             // Validate pagination parameters
             const pageNumber = parseInt(page as string, 10);
@@ -31,13 +31,13 @@ export default async function handler(
                 return res.status(400).json({ message: "Invalid pagination parameters" });
             }
 
-            // Allowed publication types
-            const allowedTypes = ["PeerReviewed", "Preprint", "Presentation", "Brief"];
+            // // Allowed publication types
+            // const allowedTypes = ["PeerReviewed", "Preprint", "Presentation", "Brief"];
 
-            // Ensure publication type is always present and valid
-            if (!type || typeof type !== "string" || !allowedTypes.includes(type)) {
-            return res.status(400).json({ message: "Publication type is required and must be one of: PeerReviewed, Preprint, Presentation, Brief" });
-            }
+            // // Ensure publication type is always present and valid
+            // if (!type || typeof type !== "string" || !allowedTypes.includes(type)) {
+            // return res.status(400).json({ message: "Publication type is required and must be one of: PeerReviewed, Preprint, Presentation, Brief" });
+            // }
 
             // Build filter object
             const filter: any = {
