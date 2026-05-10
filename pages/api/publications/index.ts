@@ -32,11 +32,11 @@ export default async function handler(
             }
 
             // Allowed publication types
-            const allowedTypes = ["PeerReviewed", "Preprint", "Poster", "Brief"];
+            const allowedTypes = ["PeerReviewed", "Preprint", "Presentation", "Brief"];
 
             // Ensure publication type is always present and valid
             if (!type || typeof type !== "string" || !allowedTypes.includes(type)) {
-            return res.status(400).json({ message: "Publication type is required and must be one of: PeerReviewed, Preprint, Poster, Brief" });
+            return res.status(400).json({ message: "Publication type is required and must be one of: PeerReviewed, Preprint, Presentation, Brief" });
             }
 
             // Build filter object
@@ -82,8 +82,8 @@ export default async function handler(
             }
 
             // Validate that the category is one of the allowed enum values
-            if (!["PeerReviewed", "Preprint", "Poster", "Brief"].includes(category)){
-                return res.status(400).json({ message: "Category must be one of PeerReviewed, Preprint, Poster or Brief" });
+            if (!["PeerReviewed", "Preprint", "Presentation", "Brief"].includes(category)){
+                return res.status(400).json({ message: "Category must be one of PeerReviewed, Preprint, Presentation or Brief" });
             }
 
             // If the category is PeerReviewed, fetch publications from PubMed

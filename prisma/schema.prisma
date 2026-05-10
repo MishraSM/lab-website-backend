@@ -42,7 +42,7 @@ enum TeamSection {
 enum PublicationType {
   PeerReviewed
   Preprint
-  Poster
+  Presentation
   Brief
 }
 
@@ -182,19 +182,23 @@ model Opportunity{
 /// - `createdAt`: Timestamp of when the publication was added.
 /// 
 /// Unique constraint: Combination of `title`, `authors`, `year`, and `category` must be unique.
-model Publication{
+model Publication {
   id              Int           @id @default(autoincrement())
   title           String
   authors         String
   year            Int
   category        PublicationType
-  pubmedId        String?       @unique // for publications from pubmed
-  journal         String? // journal + volumne issue for peer publication
-  preprintserver  String? // for preprint server published
-  link            String? // link for preprint or published paper, or image for poster or presentation for briefs + report
-  presentedAt     String? // for posters info
-  teamLed         TeamMember[]  @relation("teamMemberLed")  // for poster, brief + reports
-  date            DateTime?  // for poster, brief + reports
+
+  pubmedId        String?       @unique
+  doi             String?       @unique
+  orcidPutCode    String?       @unique
+  orcidWorkType   String?
+  journal         String?
+  preprintserver  String?
+  link            String?
+  presentedAt     String?
+  teamLed         TeamMember[]  @relation("teamMemberLed")
+  date            DateTime?
   createdAt       DateTime      @default(now())
 
   @@unique([title, authors, year, category])
